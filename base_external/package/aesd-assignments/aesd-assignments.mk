@@ -5,7 +5,7 @@
 #
 ##############################################################
 
-AESD_ASSIGNMENTS_VERSION = b4b550d9bad1356c5b74f48004b9eaaddc3d372a
+AESD_ASSIGNMENTS_VERSION = 8feaf1a806c867b67702318ff4a7d969037bc2ff
 AESD_ASSIGNMENTS_SITE = git@github.com:cu-ecen-aeld/assignments-3-and-later-KaywebDev.git
 AESD_ASSIGNMENTS_SITE_METHOD = git
 AESD_ASSIGNMENTS_GIT_SUBMODULES = YES
