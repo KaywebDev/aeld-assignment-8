@@ -1,0 +1,6 @@
+config BR2_PACKAGE_LDD
+	bool "ldd3 kernel modules"
+	depends on BR2_LINUX_KERNEL
+	select BR2_PACKAGE_KMOD
+	help
+	  Build and install the misc-modules and scull examples from the LDD3 fork.

@@ -1,0 +1,75 @@
+#!/bin/sh
+
+get_major()
+{
+	awk -v name="$1" '$2 == name { print $1 }' /proc/devices
+}
+
+create_scull_devices()
+{
+	major=$(get_major scull)
+	if [ -z "$major" ]; then
+		echo "scull: major number not found" >&2
+		return 1
+	fi
+
+	rm -f /dev/scull /dev/scull[0-3] /dev/scullpipe /dev/scullpipe[0-3]
+	rm -f /dev/scullsingle /dev/sculluid /dev/scullwuid /dev/scullpriv
+	for minor in 0 1 2 3; do
+		mknod -m 0664 "/dev/scull$minor" c "$major" "$minor" || return 1
+		pipe_minor=$((minor + 4))
+		mknod -m 0664 "/dev/scullpipe$minor" c "$major" "$pipe_minor" || return 1
+	done
+	ln -sf scull0 /dev/scull
+	ln -sf scullpipe0 /dev/scullpipe
+	mknod -m 0664 /dev/scullsingle c "$major" 8 || return 1
+	mknod -m 0664 /dev/sculluid c "$major" 9 || return 1
+	mknod -m 0664 /dev/scullwuid c "$major" 10 || return 1
+	mknod -m 0664 /dev/scullpriv c "$major" 11
+}
+
+create_faulty_device()
+{
+	major=$(get_major faulty)
+	if [ -z "$major" ]; then
+		echo "faulty: major number not found" >&2
+		return 1
+	fi
+	mknod -m 0664 /dev/faulty c "$major" 0
+}
+
+start_modules()
+{
+	modprobe scull || return 1
+	create_scull_devices || return 1
+	modprobe faulty || return 1
+	create_faulty_device || return 1
+	modprobe hello
+}
+
+stop_modules()
+{
+	status=0
+	for module in hello faulty scull; do
+		if grep -q "^$module " /proc/modules; then
+			rmmod "$module" || status=1
+		fi
+	done
+	rm -f /dev/faulty /dev/scull /dev/scull[0-3]
+	rm -f /dev/scullpipe /dev/scullpipe[0-3]
+	rm -f /dev/scullsingle /dev/sculluid /dev/scullwuid /dev/scullpriv
+	return "$status"
+}
+
+case "$1" in
+	start)
+		start_modules
+		;;
+	stop)
+		stop_modules
+		;;
+	*)
+		echo "Usage: $0 {start|stop}" >&2
+		exit 1
+		;;
+esac
