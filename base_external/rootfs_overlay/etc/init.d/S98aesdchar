@@ -1,0 +1,19 @@
+#!/bin/sh
+
+case "$1" in
+	start)
+		/usr/bin/aesdchar_load
+		;;
+	stop)
+		if grep -q '^aesdchar ' /proc/modules; then
+			rmmod aesdchar || exit 1
+		fi
+		rm -f /dev/aesdchar
+		;;
+	*)
+		echo "Usage: $0 {start|stop}" >&2
+		exit 1
+		;;
+esac
+
+exit 0
